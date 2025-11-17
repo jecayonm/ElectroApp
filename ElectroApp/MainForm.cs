@@ -4,6 +4,9 @@ using System.Windows.Forms;
 using ElectroApp.DAO;
 using ElectroApp.Models;
 using Microsoft.VisualBasic; // InputBox
+using System; // para DateTime
+using ElectroApp.Security; // UserSession
+using ElectroApp.Utilities; // Theme
 
 namespace ElectroApp
 {
@@ -36,15 +39,39 @@ namespace ElectroApp
         private readonly ToolStripMenuItem reportesMenu = new ToolStripMenuItem("Reportes");
         private readonly ToolStripMenuItem reportFacturaMenuItem = new ToolStripMenuItem("Factura");
         private readonly ToolStripMenuItem reportEstadoCuentaMenuItem = new ToolStripMenuItem("Estado de cuenta");
+        private readonly ToolStripMenuItem reportInventarioMenuItem = new ToolStripMenuItem("Inventario por categoría");
+        private readonly ToolStripMenuItem reportMorososMenuItem = new ToolStripMenuItem("Clientes morosos");
+
+        private readonly ToolStripMenuItem consultasMenu = new ToolStripMenuItem("Consultas");
+        private readonly ToolStripMenuItem consultaProductosMargenMenuItem = new ToolStripMenuItem("Productos con margen y utilidad");
+        private readonly ToolStripMenuItem consultaVentasClienteMenuItem = new ToolStripMenuItem("Ventas por cliente (rango)");
+        private readonly ToolStripMenuItem consultaClientesSinComprasMenuItem = new ToolStripMenuItem("Clientes sin compras (N semanas)");
+        private readonly ToolStripMenuItem consultaCreditosEstadoMenuItem = new ToolStripMenuItem("Créditos por estado");
+        private readonly ToolStripMenuItem consultaStockBajoMenuItem = new ToolStripMenuItem("Stock bajo");
 
         private readonly ToolStripMenuItem utilidadesMenu = new ToolStripMenuItem("Utilidades");
+        private readonly ToolStripMenuItem calcMenuItem = new ToolStripMenuItem("Calculadora");
+        private readonly ToolStripMenuItem calendarioMenuItem = new ToolStripMenuItem("Calendario / Agenda");
+        private readonly ToolStripMenuItem conversorMenuItem = new ToolStripMenuItem("Simulador crédito / Conversor");
+        private readonly ToolStripMenuItem bitacoraMenuItem = new ToolStripMenuItem("Bitácora accesos");
+        private readonly ToolStripMenuItem ayudaPdfMenuItem = new ToolStripMenuItem("Ayuda / About");
+
         private readonly ToolStripMenuItem ayudaMenu = new ToolStripMenuItem("Ayuda");
+        private readonly ToolStripMenuItem cambiarClaveMenuItem = new ToolStripMenuItem("Cambiar contraseña");
+        private readonly ToolStripMenuItem cerrarSesionMenuItem = new ToolStripMenuItem("Cerrar sesión");
 
         public MainForm()
         {
             // Asegurar inicialización del diseñador (aunque mínima) y configuración MDI
             InitializeComponent();
             IsMdiContainer = true;
+
+            // Aplicar tema a este formulario una vez construido su menú y status
+            this.Shown += (s, e) => Theme.Apply(this);
+            this.MdiChildActivate += (s, e) =>
+            {
+                if (ActiveMdiChild != null) Theme.Apply(ActiveMdiChild);
+            };
 
             Text = "ElectroApp - Principal";
             Width = 1000;
@@ -62,18 +89,36 @@ namespace ElectroApp
             cuotasMenuItem.Click += CuotasMenuItem_Click;
             reportFacturaMenuItem.Click += ReportFacturaMenuItem_Click;
             reportEstadoCuentaMenuItem.Click += ReportEstadoCuentaMenuItem_Click;
+            reportInventarioMenuItem.Click += (s, e) => OpenOrActivateMdiChild<InventarioCategoriaForm>();
+            reportMorososMenuItem.Click += (s, e) => OpenOrActivateMdiChild<MorososForm>();
+
+            // Eventos Consultas
+            consultaProductosMargenMenuItem.Click += (s, e) => OpenOrActivateMdiChild<ProductosMargenForm>();
+            consultaVentasClienteMenuItem.Click += (s, e) => OpenOrActivateMdiChild<VentasPorClienteForm>();
+            consultaClientesSinComprasMenuItem.Click += (s, e) => OpenOrActivateMdiChild<ClientesSinComprasForm>();
+            consultaCreditosEstadoMenuItem.Click += (s, e) => OpenOrActivateMdiChild<CreditosPorEstadoForm>();
+            consultaStockBajoMenuItem.Click += (s, e) => OpenOrActivateMdiChild<StockBajoForm>();
 
             cascadaMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.Cascade);
             mosaicoHMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.TileHorizontal);
             mosaicoVMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.TileVertical);
             organizarIconosMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.ArrangeIcons);
 
+            // Utilidades mini apps
+            calcMenuItem.Click += (s, e) => OpenOrActivateMdiChild<CalculadoraForm>();
+            calendarioMenuItem.Click += (s, e) => OpenOrActivateMdiChild<CalendarioAgendaForm>();
+            conversorMenuItem.Click += (s, e) => OpenOrActivateMdiChild<SimuladorCreditoForm>();
+            bitacoraMenuItem.Click += (s, e) => OpenOrActivateMdiChild<BitacoraAccesosForm>();
+            ayudaPdfMenuItem.Click += (s, e) => OpenOrActivateMdiChild<AboutAyudaForm>();
+
             entidadesMenu.DropDownItems.AddRange(new ToolStripItem[] { clientesMenuItem, productosMenuItem, categoriasMenuItem, planesMenuItem, usuariosMenuItem });
             transaccionesMenu.DropDownItems.AddRange(new ToolStripItem[] { ventasMenuItem, cuotasMenuItem });
             ventanasMenu.DropDownItems.AddRange(new ToolStripItem[] { cascadaMenuItem, mosaicoHMenuItem, mosaicoVMenuItem, organizarIconosMenuItem });
-            reportesMenu.DropDownItems.AddRange(new ToolStripItem[] { reportFacturaMenuItem, reportEstadoCuentaMenuItem });
+            reportesMenu.DropDownItems.AddRange(new ToolStripItem[] { reportFacturaMenuItem, reportEstadoCuentaMenuItem, new ToolStripSeparator(), reportInventarioMenuItem, reportMorososMenuItem });
+            consultasMenu.DropDownItems.AddRange(new ToolStripItem[] { consultaProductosMargenMenuItem, consultaVentasClienteMenuItem, consultaClientesSinComprasMenuItem, consultaCreditosEstadoMenuItem, consultaStockBajoMenuItem });
+            utilidadesMenu.DropDownItems.AddRange(new ToolStripItem[] { calcMenuItem, calendarioMenuItem, conversorMenuItem, bitacoraMenuItem, ayudaPdfMenuItem });
 
-            _menu.Items.AddRange(new ToolStripItem[] { entidadesMenu, transaccionesMenu, reportesMenu, ventanasMenu, utilidadesMenu, ayudaMenu });
+            _menu.Items.AddRange(new ToolStripItem[] { entidadesMenu, transaccionesMenu, reportesMenu, consultasMenu, utilidadesMenu, ventanasMenu, ayudaMenu });
             _menu.Dock = DockStyle.Top;
             MainMenuStrip = _menu;
             Controls.Add(_menu);
@@ -84,6 +129,59 @@ namespace ElectroApp
             Controls.Add(_status);
 
             FormClosing += MainForm_FormClosing;
+
+            // Agregar item de cambio de contraseña en Ayuda
+            cambiarClaveMenuItem.Click += (s, e) => OpenOrActivateMdiChild<CambioClaveForm>();
+            cerrarSesionMenuItem.Click += CerrarSesionMenuItem_Click;
+
+            // Asegurar que el menú Ayuda tenga las opciones
+            if (!ayudaMenu.DropDownItems.Contains(cambiarClaveMenuItem)) ayudaMenu.DropDownItems.Add(cambiarClaveMenuItem);
+            if (!ayudaMenu.DropDownItems.Contains(cerrarSesionMenuItem)) ayudaMenu.DropDownItems.Add(new ToolStripSeparator());
+            if (!ayudaMenu.DropDownItems.Contains(cerrarSesionMenuItem)) ayudaMenu.DropDownItems.Add(cerrarSesionMenuItem);
+        }
+
+        private void CerrarSesionMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("¿Desea cerrar la sesión actual?", "Cerrar sesión", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            try
+            {
+                // Registrar salida en bitácora si corresponde
+                if (_idBitacora > 0)
+                {
+                    var dao = new UsuarioDAO();
+                    dao.RegistrarSalida(_idBitacora);
+                }
+            }
+            catch { /* no bloquear por errores de bitácora */ }
+
+            // Limpiar sesión y UI
+            _idBitacora = 0;
+            _usuario = null;
+            UserSession.SetUser(null);
+            Text = "ElectroApp - Principal";
+            _lblUsuario.Text = string.Empty;
+
+            // Cerrar ventanas MDI abiertas
+            foreach (var child in MdiChildren)
+            {
+                try { child.Close(); } catch { }
+            }
+
+            // Pedir nuevo login; si cancela, cerrar app
+            using (var login = new LoginForm())
+            {
+                var dr = login.ShowDialog(this);
+                if (dr == DialogResult.OK)
+                {
+                    SetUsuario(login.UsuarioAutenticado, login.IdBitacoraActual);
+                }
+                else
+                {
+                    Close();
+                }
+            }
         }
 
         // Se llama después de login exitoso para establecer usuario y bitácora
@@ -93,6 +191,8 @@ namespace ElectroApp
             _idBitacora = idBitacora;
             Text = $"ElectroApp - Usuario: {_usuario.Login} - Rol: {_usuario.NombreRol}";
             _lblUsuario.Text = $"Usuario: {_usuario.Login} | Rol: {_usuario.NombreRol}";
+            // Setear usuario en contexto global
+            UserSession.SetUser(_usuario);
             AplicarPermisos();
         }
 
@@ -101,7 +201,7 @@ namespace ElectroApp
             if (_usuario == null)
             {
                 // Deshabilitar todo por seguridad
-                entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = utilidadesMenu.Enabled = false;
+                entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = consultasMenu.Enabled = utilidadesMenu.Enabled = false;
                 return;
             }
 
@@ -112,6 +212,7 @@ namespace ElectroApp
                     entidadesMenu.Enabled = true;
                     transaccionesMenu.Enabled = true;
                     reportesMenu.Enabled = true;
+                    consultasMenu.Enabled = true;
                     utilidadesMenu.Enabled = true;
                     usuariosMenuItem.Enabled = true;
                     break;
@@ -120,6 +221,7 @@ namespace ElectroApp
                     entidadesMenu.Enabled = true;
                     transaccionesMenu.Enabled = true;
                     reportesMenu.Enabled = true;
+                    consultasMenu.Enabled = true;
                     utilidadesMenu.Enabled = true;
                     usuariosMenuItem.Enabled = false;
                     break;
@@ -128,12 +230,13 @@ namespace ElectroApp
                     entidadesMenu.Enabled = false;
                     transaccionesMenu.Enabled = false;
                     reportesMenu.Enabled = true;
+                    consultasMenu.Enabled = true;
                     utilidadesMenu.Enabled = false;
                     usuariosMenuItem.Enabled = false;
                     break;
 
                 default:
-                    entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = utilidadesMenu.Enabled = false;
+                    entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = consultasMenu.Enabled = utilidadesMenu.Enabled = false;
                     usuariosMenuItem.Enabled = false;
                     break;
             }

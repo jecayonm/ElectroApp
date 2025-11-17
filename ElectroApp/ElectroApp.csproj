@@ -84,7 +84,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CambioClaveForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="CategoriasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\ClientesSinComprasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\CreditosPorEstadoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\ProductosMargenForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\StockBajoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\VentasPorClienteForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="DAO\CategoriaDAO.cs" />
@@ -126,6 +144,9 @@
     <Compile Include="ClientesForm.Designer.cs">
       <DependentUpon>ClientesForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="InventarioCategoriaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -139,6 +160,9 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\Usuario.cs" />
+    <Compile Include="MorososForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="PlanesCreditoForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -156,7 +180,9 @@
     <Compile Include="RegisterForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Security\Authorization.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
+    <Compile Include="Security\UserSession.cs" />
     <Compile Include="Services\VentasService.cs" />
     <Compile Include="UsuariosForm.cs">
       <SubType>Form</SubType>
@@ -164,7 +190,23 @@
     <Compile Include="UsuariosForm.Designer.cs">
       <DependentUpon>UsuariosForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Utilidades\AboutAyudaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utilidades\BitacoraAccesosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utilidades\CalculadoraForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utilidades\CalendarioAgendaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utilidades\SimuladorCreditoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Utilities\Logger.cs" />
+    <Compile Include="Utilities\Theme.cs" />
     <Compile Include="VentasForm.cs">
       <SubType>Form</SubType>
     </Compile>

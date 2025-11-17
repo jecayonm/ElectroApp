@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using ElectroApp.DAO;
 using ElectroApp.Data;
+using ElectroApp.Utilities; // Theme
 
 namespace ElectroApp
 {
@@ -17,6 +18,7 @@ namespace ElectroApp
         public LoginForm()
         {
             InitializeComponent();
+            this.Shown += (s, e) => Theme.Apply(this);
         }
 
         private void LoginForm_Load(object sender, EventArgs e)

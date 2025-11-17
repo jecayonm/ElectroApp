@@ -2,6 +2,7 @@
 using System.Data;
 using System.Windows.Forms;
 using ElectroApp.Services;
+using ElectroApp.Utilities; // Theme
 
 namespace ElectroApp
 {
@@ -10,56 +11,52 @@ namespace ElectroApp
         private readonly int _idVenta;
         private readonly VentasService _svc = new VentasService();
         private DataGridView _grid;
-        private Button _btnPagar;
+        private ToolStrip _bar;
+        private ToolStripButton _btnPagarTs;
+        private ToolStripButton _btnImprimirTs;
+        // Mantener campo antiguo para evitar error ENC0020 en Hot Reload
+        private Button _btnPagar; // no usado
 
         public CuotasForm(int idVenta)
         {
             _idVenta = idVenta;
 
-            // Llama al InitializeComponent generado por el diseñador
             InitializeComponent();
-
-            // Construye la UI por código (antes la llamabas InitializeComponent)
             SetupUi();
 
-            // Carga datos al abrir
-            Load += (s, e) => CargarCuotas();
-
-            _btnPagar.Enabled = false;
-            _grid.SelectionChanged += (s, e) => _btnPagar.Enabled = _grid.CurrentRow != null;
-
-            var btnPrint = new Button { Text = "Imprimir estado de cuenta", Dock = DockStyle.Top, Height = 40 };
-            btnPrint.Click += (s, e) => new EstadoCuentaForm(_idVenta).ShowDialog();
-            Controls.Add(btnPrint);
-            Controls.SetChildIndex(btnPrint, 0); // que quede arriba
-
+            Load += (s, e) => { Theme.Apply(this); CargarCuotas(); };
         }
 
         private void SetupUi()
         {
             Text = "Cuotas del crédito";
-            Width = 800;
-            Height = 500;
+            Width = 900;
+            Height = 600;
+            StartPosition = FormStartPosition.CenterParent;
 
-            _btnPagar = new Button
-            {
-                Text = "Pagar cuota seleccionada",
-                Dock = DockStyle.Top,
-                Height = 40
-            };
-            _btnPagar.Click += BtnPagar_Click;
+            // Barra superior
+            _bar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, Stretch = true, RenderMode = ToolStripRenderMode.System, Dock = DockStyle.Top };
+            _btnPagarTs = new ToolStripButton("Pagar cuota seleccionada");
+            _btnImprimirTs = new ToolStripButton("Imprimir estado de cuenta");
+            _btnPagarTs.Enabled = false;
+            _btnPagarTs.Click += BtnPagar_Click;
+            _btnImprimirTs.Click += (s, e) => new EstadoCuentaForm(_idVenta).ShowDialog(this);
+            _bar.Items.AddRange(new ToolStripItem[] { _btnPagarTs, new ToolStripSeparator(), _btnImprimirTs });
 
+            // Grilla
             _grid = new DataGridView
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                ScrollBars = ScrollBars.Both
             };
+            _grid.SelectionChanged += (s, e) => _btnPagarTs.Enabled = _grid.CurrentRow != null;
 
             Controls.Add(_grid);
-            Controls.Add(_btnPagar);
+            Controls.Add(_bar);
         }
 
         private void CargarCuotas()
@@ -69,21 +66,21 @@ namespace ElectroApp
 
             if (_grid.Columns.Contains("IdCredito")) _grid.Columns["IdCredito"].Visible = false;
             if (_grid.Columns.Contains("IdCuota")) _grid.Columns["IdCuota"].Visible = false;
+
+            if (_grid.Columns.Contains("ValorCuota")) _grid.Columns["ValorCuota"].DefaultCellStyle.Format = "C2";
+            if (_grid.Columns.Contains("FechaVence")) _grid.Columns["FechaVence"].DefaultCellStyle.Format = "dd/MM/yyyy";
         }
-
-
 
         private void BtnPagar_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("¿Confirmar pago de la cuota seleccionada?",
-                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
-
             if (_grid.CurrentRow == null) { MessageBox.Show("Selecciona una cuota."); return; }
             var rowView = _grid.CurrentRow.DataBoundItem as DataRowView;
             if (rowView == null) return;
 
             var row = rowView.Row;
             if (row.Field<bool>("Pagada")) { MessageBox.Show("Esa cuota ya está pagada."); return; }
+
+            if (MessageBox.Show("¿Confirmar pago de la cuota seleccionada?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             int idCuota = Convert.ToInt32(row["IdCuota"]);
             decimal valor = Convert.ToDecimal(row["ValorCuota"]);
@@ -102,7 +99,6 @@ namespace ElectroApp
 
         private void CuotasForm_Load(object sender, EventArgs e)
         {
-
         }
     }
 }

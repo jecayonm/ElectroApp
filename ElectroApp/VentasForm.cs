@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using ElectroApp.Services;
 using ElectroApp.Data;
 using System.Data.SqlClient;
+using ElectroApp.Utilities; // Theme
 
 namespace ElectroApp
 {
@@ -47,6 +48,7 @@ namespace ElectroApp
 
             BuildUi();
             Load += (s, e) => {
+                Theme.Apply(this);
                 CargarClientes();
                 CargarPlanes();
                 PrepararTablaItems();
@@ -113,7 +115,8 @@ namespace ElectroApp
                 AutoGenerateColumns = true,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = true,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                ScrollBars = ScrollBars.Vertical
             };
             _gridItems.DataSource = _bsItems;
             _gridItems.UserDeletedRow += (s, e) => RecalcularTotales();
@@ -144,7 +147,8 @@ namespace ElectroApp
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
                 AutoGenerateColumns = true,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                ScrollBars = ScrollBars.Vertical
             };
             _gridProductos.DataSource = _bsProductos;
             _gridProductos.DoubleClick += (s, e) => AgregarDesdeGridProductos();

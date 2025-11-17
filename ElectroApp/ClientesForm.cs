@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data;
-using System.Linq;
 using System.Windows.Forms;
 using ElectroApp.DAO;
+using ElectroApp.Utilities; // Theme
 
 namespace ElectroApp
 {
@@ -14,25 +14,37 @@ namespace ElectroApp
         private readonly ToolStripButton _btnRefrescar = new ToolStripButton("Refrescar");
         private readonly ToolStripButton _btnGuardar = new ToolStripButton("Guardar");
         private readonly ToolStripButton _btnEliminar = new ToolStripButton("Eliminar fila");
+        private TableLayoutPanel _layout;
 
         private DataTable _dt;
         private readonly ClienteDAO _dao = new ClienteDAO();
 
         public ClientesForm()
         {
-            Text = "Clientes (CRUD ADO.NET + DAO)";
-            Width = 900; Height = 600;
+            InitializeComponent();
+            Text = "Clientes";
+            Width = 900; Height = 550;
+            StartPosition = FormStartPosition.CenterParent;
+            SetupUi();
+            Load += (s, e) => Cargar();
+            Shown += (s, e) => Theme.Apply(this);
+        }
 
-            _bar.Items.AddRange(new ToolStripItem[] { _btnRefrescar, _btnGuardar, _btnEliminar });
+        private void SetupUi()
+        {
             _btnRefrescar.Click += (s, e) => Cargar();
             _btnGuardar.Click += (s, e) => Guardar();
             _btnEliminar.Click += (s, e) => EliminarFilaSeleccionada();
+            _bar.Items.AddRange(new ToolStripItem[] { _btnRefrescar, _btnGuardar, _btnEliminar });
 
-            Controls.Add(_grid);
-            Controls.Add(_bar);
-            _bar.Dock = DockStyle.Top;
+            _layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
+            _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // ToolStrip altura auto
+            _layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f)); // Grilla ocupa el resto
 
-            Load += (s, e) => Cargar();
+            _layout.Controls.Add(_bar, 0, 0);
+            _layout.Controls.Add(_grid, 0, 1);
+
+            Controls.Add(_layout);
         }
 
         private void Cargar()

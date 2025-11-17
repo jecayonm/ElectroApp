@@ -31,15 +31,32 @@ namespace ElectroApp
                 return;
             }
 
-            var dt = new DataTable();
+            var dtEnc = new DataTable();
+            var dtDet = new DataTable();
 
             using (var cn = SqlConnectionFactory.Create())
-            using (var da = new SqlDataAdapter(
-                "SELECT Consecutivo, Fecha, Nombres, Apellidos, Subtotal, IVA, TotalNeto " +
-                "FROM core.vw_Factura WHERE Consecutivo=@c", cn))
             {
-                da.SelectCommand.Parameters.Add("@c", SqlDbType.VarChar, 20).Value = _consecutivo;
-                da.Fill(dt);
+                using (var da = new SqlDataAdapter(
+                    "SELECT Consecutivo, Fecha, Nombres, Apellidos, Subtotal, IVA, TotalNeto " +
+                    "FROM core.vw_Factura WHERE Consecutivo=@c", cn))
+                {
+                    da.SelectCommand.Parameters.Add("@c", SqlDbType.VarChar, 20).Value = _consecutivo;
+                    da.Fill(dtEnc);
+                }
+
+                using (var da = new SqlDataAdapter(@"
+SELECT p.Descripcion, c.Nombre AS Categoria
+FROM core.DetalleVenta d
+JOIN core.Venta v       ON v.IdVenta     = d.IdVenta
+JOIN core.Producto p    ON p.IdProducto  = d.IdProducto
+JOIN core.Categoria c   ON c.IdCategoria = p.IdCategoria
+JOIN core.Factura f     ON f.IdVenta     = v.IdVenta
+WHERE f.Consecutivo = @c
+ORDER BY p.Descripcion", cn))
+                {
+                    da.SelectCommand.Parameters.Add("@c", SqlDbType.VarChar, 20).Value = _consecutivo;
+                    da.Fill(dtDet);
+                }
             }
 
             var rdlcRelative = Path.Combine("Reportes", "Factura.rdlc");
@@ -47,7 +64,8 @@ namespace ElectroApp
             reportViewer1.LocalReport.ReportPath = File.Exists(rdlcFull) ? rdlcFull : rdlcRelative;
 
             reportViewer1.LocalReport.DataSources.Clear();
-            reportViewer1.LocalReport.DataSources.Add(new ReportDataSource("DS_Factura", dt));
+            reportViewer1.LocalReport.DataSources.Add(new ReportDataSource("DS_Factura", dtEnc));
+            reportViewer1.LocalReport.DataSources.Add(new ReportDataSource("DS_FacturaDetalle", dtDet));
             reportViewer1.RefreshReport();
             //Boton exportar pdf
             var btnPdf = new Button { Text = "Exportar PDF", Dock = DockStyle.Top, Height = 36 };

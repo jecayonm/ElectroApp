@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using ElectroApp.Data;
+using ElectroApp.Security; // agregar autorización
 
 namespace ElectroApp.Services
 {
@@ -13,6 +14,7 @@ namespace ElectroApp.Services
             int idCliente,
             (int IdProducto, int Cantidad, decimal PrecioUnit)[] items)
         {
+            Authorization.DemandOperador();
             using (var cn = SqlConnectionFactory.Create())
             {
                 cn.Open();
@@ -38,6 +40,7 @@ namespace ElectroApp.Services
             int idCliente,
             (int IdProducto, int Cantidad, decimal PrecioUnit)[] items)
         {
+            Authorization.DemandOperador();
             // Restricción: un cliente solo puede tener un crédito activo
             if (TieneCreditoActivo(idCliente))
                 throw new InvalidOperationException("El cliente ya tiene un crédito activo. Debe pagarlo antes de solicitar otro.");
@@ -125,6 +128,7 @@ namespace ElectroApp.Services
 
         public string GenerarFactura(int idVenta)
         {
+            Authorization.DemandOperador();
             using (var cn = SqlConnectionFactory.Create())
             {
                 cn.Open();
@@ -146,6 +150,7 @@ namespace ElectroApp.Services
         /// </summary>
         public DataTable CrearCredito(int idVenta, byte idPlan)
         {
+            Authorization.DemandOperador();
             using (var cn = SqlConnectionFactory.Create())
             {
                 cn.Open();
@@ -170,6 +175,7 @@ namespace ElectroApp.Services
         /// </summary>
         public DataTable ObtenerCuotasPorVenta(int idVenta)
         {
+            Authorization.DemandConsulta();
             using (var cn = SqlConnectionFactory.Create())
             {
                 cn.Open();
@@ -193,6 +199,7 @@ namespace ElectroApp.Services
         /// </summary>
         public void PagarCuota(int idCuota, decimal valor)
         {
+            Authorization.DemandOperador();
             using (var cn = SqlConnectionFactory.Create())
             {
                 cn.Open();

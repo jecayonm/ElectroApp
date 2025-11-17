@@ -30,6 +30,9 @@ namespace ElectroApp
                 }
             };
 
+            // Aplicar tema global (renderer para ToolStrip/MenuStrip/StatusStrip)
+            Theme.ApplyGlobals();
+
             ProbarConexion();
 
             using (var login = new LoginForm())
@@ -41,6 +44,8 @@ namespace ElectroApp
                 }
 
                 var main = new MainForm();
+                // Aplicar tema al formulario principal (propaga a controles)
+                Theme.Apply(main);
                 main.SetUsuario(login.UsuarioAutenticado, login.IdBitacoraActual);
                 Application.Run(main);
             }

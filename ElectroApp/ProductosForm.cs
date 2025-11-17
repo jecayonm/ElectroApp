@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Windows.Forms;
 using ElectroApp.Data;
+using ElectroApp.Utilities; // Theme
 
 namespace ElectroApp
 {
@@ -33,7 +34,7 @@ namespace ElectroApp
             Controls.Add(_bar);
             _bar.Dock = DockStyle.Top;
 
-            Load += (s, e) => Cargar();
+            Load += (s, e) => { Theme.Apply(this); Cargar(); };
         }
 
         private void Cargar()
