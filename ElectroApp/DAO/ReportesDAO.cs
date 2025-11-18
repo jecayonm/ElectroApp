@@ -256,5 +256,120 @@ ORDER BY p.Stock ASC", cn))
                 return dt;
             }
         }
+
+        // 1. Producto más costoso que ha comprado cada cliente
+        public DataTable GetProductoMasCostosoPorCliente()
+        {
+            using (var cn = SqlConnectionFactory.Create())
+            using (var da = new SqlDataAdapter(@"SELECT 
+    cl.Documento AS Cedula,
+    (cl.Nombres + ' ' + cl.Apellidos) AS Cliente,
+    p.Descripcion AS Producto,
+    x.PrecioUnit AS ValorUnitario
+FROM core.Cliente cl
+OUTER APPLY (
+    SELECT TOP 1 d.PrecioUnit, d.IdProducto
+    FROM core.Venta v
+    JOIN core.DetalleVenta d ON d.IdVenta = v.IdVenta
+    WHERE v.IdCliente = cl.IdCliente
+    ORDER BY d.PrecioUnit DESC
+) x
+LEFT JOIN core.Producto p ON p.IdProducto = x.IdProducto
+WHERE x.PrecioUnit IS NOT NULL
+ORDER BY Cliente", cn))
+            {
+                var dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
+
+        // 3. Ventas cuyo valor persistido no coincide con la suma de detalles
+        public DataTable GetVentasInconsistentes(decimal tolerancia = 0.01m)
+        {
+            using (var cn = SqlConnectionFactory.Create())
+            using (var da = new SqlDataAdapter(@"WITH Totales AS (
+  SELECT v.IdVenta,
+         SUM(d.Cantidad * d.PrecioUnit) AS BrutoCalculado
+  FROM core.Venta v
+  JOIN core.DetalleVenta d ON d.IdVenta = v.IdVenta
+  GROUP BY v.IdVenta
+)
+SELECT v.IdVenta, v.Fecha,
+       v.Bruto AS ValorPersistido,
+       t.BrutoCalculado,
+       (v.Bruto - t.BrutoCalculado) AS Diferencia
+FROM core.Venta v
+JOIN Totales t ON t.IdVenta = v.IdVenta
+WHERE v.Bruto IS NOT NULL
+  AND ABS(v.Bruto - t.BrutoCalculado) > @tol
+ORDER BY v.Fecha DESC", cn))
+            {
+                da.SelectCommand.Parameters.AddWithValue("@tol", tolerancia);
+                var dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
+
+        // 2. Clientes con más de N ventas (requiere FechaNacimiento en Cliente para Edad)
+        public DataTable GetClientesConMasDeNVentas(int minimoVentas = 10)
+        {
+            using (var cn = SqlConnectionFactory.Create())
+            using (var da = new SqlDataAdapter(@"SELECT 
+    cl.Documento AS Cedula,
+    (cl.Nombres + ' ' + cl.Apellidos) AS Cliente,
+    CASE WHEN cl.FechaNacimiento IS NULL THEN NULL
+         ELSE DATEDIFF(YEAR, cl.FechaNacimiento, GETDATE()) END AS Edad,
+    COUNT(DISTINCT v.IdVenta) AS CantidadVentas
+FROM core.Cliente cl
+JOIN core.Venta v ON v.IdCliente = cl.IdCliente
+GROUP BY cl.Documento, cl.Nombres, cl.Apellidos, cl.FechaNacimiento
+HAVING COUNT(DISTINCT v.IdVenta) > @min
+ORDER BY CantidadVentas DESC", cn))
+            {
+                da.SelectCommand.Parameters.AddWithValue("@min", minimoVentas);
+                var dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
+
+        // 4. Hombres (>edad) con más de X compras grandes (>monto)
+        public DataTable GetHombresMayoresConComprasGrandes(int edadMin = 50, decimal minimoVenta = 100000m, int minimoCompras = 5)
+        {
+            using (var cn = SqlConnectionFactory.Create())
+            using (var da = new SqlDataAdapter(@"WITH VentasGrandes AS (
+  SELECT v.IdVenta, v.IdCliente, SUM(d.Cantidad * d.PrecioUnit) AS Bruto
+  FROM core.Venta v
+  JOIN core.DetalleVenta d ON d.IdVenta = v.IdVenta
+  GROUP BY v.IdVenta, v.IdCliente
+)
+SELECT 
+  cl.Documento AS Cedula,
+  (cl.Nombres + ' ' + cl.Apellidos) AS Cliente,
+  cl.Genero,
+  cl.Telefono,
+  cl.FechaNacimiento,
+  DATEDIFF(YEAR, cl.FechaNacimiento, GETDATE()) AS Edad,
+  COUNT(vg.IdVenta) AS CantidadComprasGrandes
+FROM core.Cliente cl
+JOIN VentasGrandes vg ON vg.IdCliente = cl.IdCliente
+WHERE (cl.Genero IN ('M','Hombre'))
+  AND cl.FechaNacimiento IS NOT NULL
+  AND DATEDIFF(YEAR, cl.FechaNacimiento, GETDATE()) > @edad
+  AND vg.Bruto > @min
+GROUP BY cl.Documento, cl.Nombres, cl.Apellidos, cl.Genero, cl.Telefono, cl.FechaNacimiento
+HAVING COUNT(vg.IdVenta) > @minCompras
+ORDER BY CantidadComprasGrandes DESC", cn))
+            {
+                da.SelectCommand.Parameters.AddWithValue("@edad", edadMin);
+                da.SelectCommand.Parameters.AddWithValue("@min", minimoVenta);
+                da.SelectCommand.Parameters.AddWithValue("@minCompras", minimoCompras);
+                var dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
     }
 }

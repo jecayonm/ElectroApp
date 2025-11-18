@@ -60,6 +60,12 @@ namespace ElectroApp
         private readonly ToolStripMenuItem cambiarClaveMenuItem = new ToolStripMenuItem("Cambiar contraseña");
         private readonly ToolStripMenuItem cerrarSesionMenuItem = new ToolStripMenuItem("Cerrar sesión");
 
+        private readonly ToolStripMenuItem consultasAvanzadasMenu = new ToolStripMenuItem("Consultas avanzadas");
+        private readonly ToolStripMenuItem qProductoMasCostosoMenuItem = new ToolStripMenuItem("Producto más costoso por cliente");
+        private readonly ToolStripMenuItem qClientesMasDeNVentasMenuItem = new ToolStripMenuItem("Clientes con más de N ventas");
+        private readonly ToolStripMenuItem qVentasInconsistentesMenuItem = new ToolStripMenuItem("Ventas inconsistentes (detalle vs. total)");
+        private readonly ToolStripMenuItem qHombresMayoresComprasGrandesMenuItem = new ToolStripMenuItem("Hombres >50 con compras grandes");
+
         public MainForm()
         {
             // Asegurar inicialización del diseñador (aunque mínima) y configuración MDI
@@ -99,6 +105,12 @@ namespace ElectroApp
             consultaCreditosEstadoMenuItem.Click += (s, e) => OpenOrActivateMdiChild<CreditosPorEstadoForm>();
             consultaStockBajoMenuItem.Click += (s, e) => OpenOrActivateMdiChild<StockBajoForm>();
 
+            // Suscribo nuevas consultas
+            qProductoMasCostosoMenuItem.Click += (s, e) => OpenOrActivateMdiChild<ProductoMasCostosoPorClienteForm>();
+            qClientesMasDeNVentasMenuItem.Click += (s, e) => OpenOrActivateMdiChild<ClientesMasDeNVentasForm>();
+            qVentasInconsistentesMenuItem.Click += (s, e) => OpenOrActivateMdiChild<VentasInconsistentesForm>();
+            qHombresMayoresComprasGrandesMenuItem.Click += (s, e) => OpenOrActivateMdiChild<HombresMayoresComprasGrandesForm>();
+
             cascadaMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.Cascade);
             mosaicoHMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.TileHorizontal);
             mosaicoVMenuItem.Click += (s, e) => LayoutMdi(MdiLayout.TileVertical);
@@ -117,8 +129,14 @@ namespace ElectroApp
             reportesMenu.DropDownItems.AddRange(new ToolStripItem[] { reportFacturaMenuItem, reportEstadoCuentaMenuItem, new ToolStripSeparator(), reportInventarioMenuItem, reportMorososMenuItem });
             consultasMenu.DropDownItems.AddRange(new ToolStripItem[] { consultaProductosMargenMenuItem, consultaVentasClienteMenuItem, consultaClientesSinComprasMenuItem, consultaCreditosEstadoMenuItem, consultaStockBajoMenuItem });
             utilidadesMenu.DropDownItems.AddRange(new ToolStripItem[] { calcMenuItem, calendarioMenuItem, conversorMenuItem, bitacoraMenuItem, ayudaPdfMenuItem });
+            consultasAvanzadasMenu.DropDownItems.AddRange(new ToolStripItem[] {
+                qProductoMasCostosoMenuItem,
+                qClientesMasDeNVentasMenuItem,
+                qVentasInconsistentesMenuItem,
+                qHombresMayoresComprasGrandesMenuItem
+            });
 
-            _menu.Items.AddRange(new ToolStripItem[] { entidadesMenu, transaccionesMenu, reportesMenu, consultasMenu, utilidadesMenu, ventanasMenu, ayudaMenu });
+            RebuildMenuWithAdvanced();
             _menu.Dock = DockStyle.Top;
             MainMenuStrip = _menu;
             Controls.Add(_menu);
@@ -201,7 +219,7 @@ namespace ElectroApp
             if (_usuario == null)
             {
                 // Deshabilitar todo por seguridad
-                entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = consultasMenu.Enabled = utilidadesMenu.Enabled = false;
+                entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = consultasMenu.Enabled = consultasAvanzadasMenu.Enabled = utilidadesMenu.Enabled = false;
                 return;
             }
 
@@ -213,6 +231,7 @@ namespace ElectroApp
                     transaccionesMenu.Enabled = true;
                     reportesMenu.Enabled = true;
                     consultasMenu.Enabled = true;
+                    consultasAvanzadasMenu.Enabled = true;
                     utilidadesMenu.Enabled = true;
                     usuariosMenuItem.Enabled = true;
                     break;
@@ -222,6 +241,7 @@ namespace ElectroApp
                     transaccionesMenu.Enabled = true;
                     reportesMenu.Enabled = true;
                     consultasMenu.Enabled = true;
+                    consultasAvanzadasMenu.Enabled = true;
                     utilidadesMenu.Enabled = true;
                     usuariosMenuItem.Enabled = false;
                     break;
@@ -231,12 +251,13 @@ namespace ElectroApp
                     transaccionesMenu.Enabled = false;
                     reportesMenu.Enabled = true;
                     consultasMenu.Enabled = true;
+                    consultasAvanzadasMenu.Enabled = true;
                     utilidadesMenu.Enabled = false;
                     usuariosMenuItem.Enabled = false;
                     break;
 
                 default:
-                    entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = consultasMenu.Enabled = utilidadesMenu.Enabled = false;
+                    entidadesMenu.Enabled = transaccionesMenu.Enabled = reportesMenu.Enabled = consultasMenu.Enabled = consultasAvanzadasMenu.Enabled = utilidadesMenu.Enabled = false;
                     usuariosMenuItem.Enabled = false;
                     break;
             }
@@ -346,6 +367,21 @@ namespace ElectroApp
         private void MainForm_Load(object sender, EventArgs e)
         {
             //dejar vacio
+        }
+
+        private void RebuildMenuWithAdvanced()
+        {
+            _menu.Items.Clear();
+            _menu.Items.AddRange(new ToolStripItem[] {
+                entidadesMenu,
+                transaccionesMenu,
+                reportesMenu,
+                consultasMenu,
+                consultasAvanzadasMenu,
+                utilidadesMenu,
+                ventanasMenu,
+                ayudaMenu
+            });
         }
 
     }

@@ -90,16 +90,28 @@
     <Compile Include="CategoriasForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Consultas\ClientesMasDeNVentasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Consultas\ClientesSinComprasForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Consultas\CreditosPorEstadoForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Consultas\HombresMayoresComprasGrandesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\ProductoMasCostosoPorClienteForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Consultas\ProductosMargenForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Consultas\StockBajoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Consultas\VentasInconsistentesForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Consultas\VentasPorClienteForm.cs">
@@ -205,6 +217,7 @@
     <Compile Include="Utilidades\SimuladorCreditoForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Utilities\DbMigrator.cs" />
     <Compile Include="Utilities\Logger.cs" />
     <Compile Include="Utilities\Theme.cs" />
     <Compile Include="VentasForm.cs">

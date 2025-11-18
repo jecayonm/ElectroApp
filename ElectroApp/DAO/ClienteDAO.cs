@@ -6,7 +6,7 @@ namespace ElectroApp.DAO
 {
     public class ClienteDAO
     {
-        private const string SelectSql = @"SELECT IdCliente, Nombres, Apellidos, Documento, Telefono, Email
+        private const string SelectSql = @"SELECT IdCliente, Nombres, Apellidos, Documento, Telefono, Email, FechaNacimiento, Genero
                   FROM core.Cliente
                   ORDER BY IdCliente";
 

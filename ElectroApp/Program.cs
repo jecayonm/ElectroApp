@@ -30,8 +30,11 @@ namespace ElectroApp
                 }
             };
 
-            // Aplicar tema global (renderer para ToolStrip/MenuStrip/StatusStrip)
+            // Aplicar tema global
             Theme.ApplyGlobals();
+
+            // Migraciones mínimas de esquema necesarias
+            DbMigrator.EnsureSchema();
 
             ProbarConexion();
 

@@ -52,12 +52,22 @@ namespace ElectroApp
             try
             {
                 _dt = _dao.GetClientes();
-
                 _bs.DataSource = _dt;
                 _grid.DataSource = _bs;
 
                 if (_grid.Columns.Contains("IdCliente"))
                     _grid.Columns["IdCliente"].ReadOnly = true; // identity
+
+                // Configurar columnas nuevas si existen
+                if (_grid.Columns.Contains("FechaNacimiento"))
+                {
+                    _grid.Columns["FechaNacimiento"].HeaderText = "Fecha Nac.";
+                    _grid.Columns["FechaNacimiento"].DefaultCellStyle.Format = "dd/MM/yyyy";
+                }
+                if (_grid.Columns.Contains("Genero"))
+                {
+                    _grid.Columns["Genero"].HeaderText = "Género";
+                }
 
                 _grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 _grid.AllowUserToAddRows = true;
@@ -137,6 +147,17 @@ namespace ElectroApp
                 {
                     MessageBox.Show("El Email no tiene un formato válido.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
+                }
+
+                // Validación opcional de género
+                if (dt.Columns.Contains("Genero"))
+                {
+                    var g = row["Genero"]?.ToString()?.Trim();
+                    if (!string.IsNullOrEmpty(g) && !(g.Equals("M", StringComparison.OrdinalIgnoreCase) || g.Equals("F", StringComparison.OrdinalIgnoreCase) || g.Equals("Hombre", StringComparison.OrdinalIgnoreCase) || g.Equals("Mujer", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        MessageBox.Show("Género permitido: M/F/Hombre/Mujer", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return false;
+                    }
                 }
             }
             return true;

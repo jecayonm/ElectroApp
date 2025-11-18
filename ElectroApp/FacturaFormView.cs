@@ -20,7 +20,8 @@ namespace ElectroApp
         {
             InitializeComponent();      // lo genera el diseñador
             _consecutivo = consecutivo;
-            this.Load += FacturaFormView_Load;
+            // Evitar doble suscripción: el diseñador ya agrega el Load
+            // this.Load += FacturaFormView_Load;
         }
 
         private void FacturaFormView_Load(object sender, EventArgs e)
@@ -67,6 +68,7 @@ ORDER BY p.Descripcion", cn))
             reportViewer1.LocalReport.DataSources.Add(new ReportDataSource("DS_Factura", dtEnc));
             reportViewer1.LocalReport.DataSources.Add(new ReportDataSource("DS_FacturaDetalle", dtDet));
             reportViewer1.RefreshReport();
+
             //Boton exportar pdf
             var btnPdf = new Button { Text = "Exportar PDF", Dock = DockStyle.Top, Height = 36 };
             btnPdf.Click += (s, args) =>
@@ -75,7 +77,23 @@ ORDER BY p.Descripcion", cn))
                 {
                     // por si el consecutivo tuviera caracteres no válidos
                     string safe = string.Concat(_consecutivo.Split(System.IO.Path.GetInvalidFileNameChars()));
-                    var bytes = reportViewer1.LocalReport.Render("PDF");
+
+                    // Usar sobrecarga completa de Render para mayor compatibilidad
+                    string deviceInfo = "<DeviceInfo>" +
+                                        "<HumanReadablePDF>True</HumanReadablePDF>" +
+                                        "</DeviceInfo>";
+                    string mime, enc, ext;
+                    Warning[] warnings;
+                    string[] streams;
+                    var bytes = reportViewer1.LocalReport.Render(
+                        "PDF",
+                        deviceInfo,
+                        out mime,
+                        out enc,
+                        out ext,
+                        out streams,
+                        out warnings);
+
                     var path = System.IO.Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                         $"Factura_{safe}.pdf");
